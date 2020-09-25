@@ -11,12 +11,9 @@ public:
 
 	}
 
-	virtual void Draw() {
-	}
+	virtual void Draw() = 0;
 
-	virtual void PollInput(float deltaTime, sf::Event* event) {
-
-	}
+	virtual void PollInput(float deltaTime, sf::Event* event) {}
 
 	virtual void Update(float deltaTime, sf::Event* event) {
 		transformRect.left = position.x;
@@ -81,8 +78,8 @@ public:
 private:
 	sf::RectangleShape paddleSprite;
 
-	sf::Keyboard::Key upKey;
-	sf::Keyboard::Key downKey;
+	sf::Keyboard::Key upKey = sf::Keyboard::Up;
+	sf::Keyboard::Key downKey = sf::Keyboard::Down;
 
 	float movementSpeed = 3.0f;
 };
@@ -112,7 +109,6 @@ public:
 		//generates random seed for the program
 		std::random_device rd;  
 		std::mt19937 gen(rd()); 
-		//generates a random floating point number between -3 and 3
 		std::uniform_int_distribution<> dis(0, 1);
 		std::uniform_real_distribution<> yDis(0, movementSpeed);
 
@@ -142,6 +138,41 @@ public:
 		velocity = sf::Vector2f(xVel, yVel);
 	}
 
+	void HitPaddle() {
+		//TODO: Play sound
+
+
+		if (position.x < SCREEN_WIDTH / 2) {
+			position.x = 0 + 36.0f;
+		}
+		else {
+			position.x = SCREEN_WIDTH - 37.0f - size.x;
+		}
+
+		velocity.x = -velocity.x;
+
+		std::random_device rd;
+		std::mt19937 gen(rd());
+		std::uniform_int_distribution<> dis(0, 1);
+		std::uniform_real_distribution<> yDis(0, movementSpeed);
+
+		float yVel = movementSpeed * dis(gen);
+
+		if (dis(gen) == 0)
+		{
+
+			yVel = -yDis(gen);
+
+		}
+		else
+		{
+			yVel = yDis(gen);
+		}
+
+		velocity.y = yVel;
+
+	}
+
 private:
 	sf::Vector2f velocity;
 
@@ -167,7 +198,6 @@ int main()
 	leftPaddle->SetKeys(sf::Keyboard::W, sf::Keyboard::S);
 
 	std::shared_ptr<Paddle> rightPaddle = std::make_shared<Paddle>(window, SCREEN_WIDTH - 35, sf::Color::Green, sf::Vector2f(20,100), 120.0f);
-	rightPaddle->SetKeys(sf::Keyboard::Up, sf::Keyboard::Down);
 
 	std::shared_ptr<Ball> ball = std::make_shared<Ball>(window, sf::Color::White, 16.0f);
 
@@ -188,14 +218,18 @@ int main()
 				ball->Reset();
 			}
 		}
-		
+
 		leftPaddle->Update(deltaTime, &event);
 		rightPaddle->Update(deltaTime, &event);
 		ball->Update(deltaTime, &event);
 
 		if (CheckCollision(*ball, *leftPaddle)) {
-			ball->Reset();
+			ball->HitPaddle();
 		}
+		else if (CheckCollision(*ball, *rightPaddle)) {
+			ball->HitPaddle();
+		}
+
 
 		window->clear();
 
