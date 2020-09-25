@@ -59,10 +59,12 @@ public:
 
 	void PollInput(float deltaTime, sf::Event* event) override {
 		if (sf::Keyboard::isKeyPressed(upKey)) {
-			position.y = position.y - movementSpeed * deltaTime;
+			if(position.y > 0)
+				position.y = position.y - movementSpeed * deltaTime;
 		}
 		else if (sf::Keyboard::isKeyPressed(downKey)) {
-			position.y = position.y + movementSpeed * deltaTime;
+			if(position.y < SCREEN_HEIGHT - size.y)
+				position.y = position.y + movementSpeed * deltaTime;
 		}
 	}
 
@@ -86,7 +88,7 @@ private:
 
 class Ball : public GameObject {
 public:
-	Ball(sf::RenderWindow* window, sf::Color color, float radius) : GameObject(window, sf::Vector2f(SCREEN_WIDTH/2,SCREEN_HEIGHT/2), color, sf::Vector2f(radius, radius)) {
+	Ball(sf::RenderWindow* window, sf::Color color, float radius) : GameObject(window, sf::Vector2f(SCREEN_WIDTH/2,SCREEN_HEIGHT/2), color, sf::Vector2f(radius * 2, radius * 2)) {
 		ballSprite = sf::CircleShape(radius);
 		Reset();
 	}
@@ -96,6 +98,20 @@ public:
 	}
 
 	void Update(float deltaTime, sf::Event* event) override {
+		if (position.x < 0) {
+			Reset();
+		}
+		else if (position.x > SCREEN_WIDTH) {
+			Reset();
+		}
+
+		if (position.y < 0) {
+			HitWall();
+		}
+		else if (position.y + size.y > SCREEN_HEIGHT) {
+			HitWall();
+		}
+
 		GameObject::Update(deltaTime, event);
 
 		position += velocity * deltaTime;
@@ -141,7 +157,6 @@ public:
 	void HitPaddle() {
 		//TODO: Play sound
 
-
 		if (position.x < SCREEN_WIDTH / 2) {
 			position.x = 0 + 36.0f;
 		}
@@ -160,9 +175,7 @@ public:
 
 		if (dis(gen) == 0)
 		{
-
 			yVel = -yDis(gen);
-
 		}
 		else
 		{
@@ -171,6 +184,10 @@ public:
 
 		velocity.y = yVel;
 
+	}
+
+	void HitWall() {
+		velocity.y = -velocity.y;
 	}
 
 private:
@@ -229,7 +246,6 @@ int main()
 		else if (CheckCollision(*ball, *rightPaddle)) {
 			ball->HitPaddle();
 		}
-
 
 		window->clear();
 
