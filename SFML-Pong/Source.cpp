@@ -8,20 +8,24 @@
 #define SCREEN_WIDTH 1024
 #define SCREEN_HEIGHT 720
 
+class Time {
+public:
+	float deltaTime;
+	
+	void UpdateTimer() {
+		sf::Time dt = deltaClock.restart();
+		deltaTime = dt.asSeconds();
+	}
+private:
+	sf::Clock deltaClock;
+};
+
 class SoundEffect {
 public:
 	SoundEffect() = default;
 
-	SoundEffect(std::string& filename) {
+	SoundEffect(const char* filename) {
 		SetPath(filename);
-	}
-
-	void SetPath(std::string& filename) {
-		if (!soundBuffer.loadFromFile(filename)) {
-			std::cout << "[ERROR: Sound.cpp]: Sound buffer at " << filename << " could not be found" << std::endl;
-			return;
-		}
-		soundEffect.setBuffer(soundBuffer);
 	}
 
 	void SetPath(const char* filename) {
@@ -136,8 +140,8 @@ public:
 		ballSprite = sf::CircleShape(radius);
 		Reset();
 
-		scoreSound.SetPath("Assets/Sounds/paddleHit.Wav");
-		wallSound.SetPath("Assets/Sounds/wallHit.wav");
+		wallSound = std::make_unique<SoundEffect>("Assets/Sounds/wallHit.wav");
+		scoreSound = std::make_unique<SoundEffect>("Assets/Sounds/paddleHit.Wav");
 	}
 
 	void Draw() override {
@@ -202,7 +206,7 @@ public:
 	}
 
 	void HitPaddle() {
-		scoreSound.Play();
+		scoreSound->Play();
 
 		if (position.x < SCREEN_WIDTH / 2) {
 			position.x = 0 + 36.0f;
@@ -235,7 +239,7 @@ public:
 
 	void HitWall() {
 		velocity.y = -velocity.y;
-		wallSound.Play();
+		wallSound->Play();
 	}
 
 private:
@@ -245,8 +249,8 @@ private:
 
 	float movementSpeed = 250.0f;
 
-	SoundEffect scoreSound;
-	SoundEffect wallSound;
+	std::unique_ptr<SoundEffect> scoreSound;
+	std::unique_ptr<SoundEffect> wallSound;
 };
 
 bool CheckCollision(GameObject& a, GameObject& b) {
@@ -258,6 +262,8 @@ bool CheckCollision(GameObject& a, GameObject& b) {
 
 int main()
 {
+	Time time;
+
 	auto* window = new sf::RenderWindow(sf::VideoMode(SCREEN_WIDTH, SCREEN_HEIGHT), "SFML Pong");
 	window->setVerticalSyncEnabled(true);
 	window->setFramerateLimit(60);
@@ -269,12 +275,9 @@ int main()
 
 	std::shared_ptr<Ball> ball = std::make_shared<Ball>(window, sf::Color::White, 16.0f);
 
-	sf::Clock deltaClock;
-
 	while (window->isOpen())
 	{
-		sf::Time dt = deltaClock.restart();
-		float deltaTime = dt.asSeconds();
+		time.UpdateTimer();
 
 		sf::Event event;
 		while (window->pollEvent(event))
@@ -287,9 +290,9 @@ int main()
 			}
 		}
 
-		leftPaddle->Update(deltaTime, &event);
-		rightPaddle->Update(deltaTime, &event);
-		ball->Update(deltaTime, &event);
+		leftPaddle->Update(time.deltaTime, &event);
+		rightPaddle->Update(time.deltaTime, &event);
+		ball->Update(time.deltaTime, &event);
 
 		//Checks collision with the paddle on the side that the ball is currently on
 		if (ball->GetPosition().x < SCREEN_WIDTH / 2) {
