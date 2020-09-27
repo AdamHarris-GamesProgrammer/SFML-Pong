@@ -1,5 +1,8 @@
 #include <SFML/Graphics.hpp>
+#include <SFML/Audio/Sound.hpp>
+#include <SFML/Audio/SoundBuffer.hpp>
 #include <memory>
+#include <iostream>
 #include <random>
 
 #define SCREEN_WIDTH 1024
@@ -91,6 +94,16 @@ public:
 	Ball(sf::RenderWindow* window, sf::Color color, float radius) : GameObject(window, sf::Vector2f(SCREEN_WIDTH/2,SCREEN_HEIGHT/2), color, sf::Vector2f(radius * 2, radius * 2)) {
 		ballSprite = sf::CircleShape(radius);
 		Reset();
+
+		if (!scoreSoundBuffer.loadFromFile("Assets/Sounds/paddleHit.Wav")) {
+			std::cout << "Failed to load file" << std::endl;
+		}
+		scoreSound.setBuffer(scoreSoundBuffer);
+
+		if (!wallSoundBuffer.loadFromFile("Assets/Sounds/wallHit.wav")) {
+			std::cout << "Failed to load file" << std::endl;
+		}
+		wallSound.setBuffer(wallSoundBuffer);
 	}
 
 	void Draw() override {
@@ -156,6 +169,7 @@ public:
 
 	void HitPaddle() {
 		//TODO: Play sound
+		scoreSound.play();
 
 		if (position.x < SCREEN_WIDTH / 2) {
 			position.x = 0 + 36.0f;
@@ -188,6 +202,7 @@ public:
 
 	void HitWall() {
 		velocity.y = -velocity.y;
+		wallSound.play();
 	}
 
 private:
@@ -196,6 +211,11 @@ private:
 	sf::CircleShape ballSprite;
 
 	float movementSpeed = 250.0f;
+
+	sf::SoundBuffer scoreSoundBuffer;
+	sf::SoundBuffer wallSoundBuffer;
+	sf::Sound scoreSound;
+	sf::Sound wallSound;
 };
 
 bool CheckCollision(GameObject& a, GameObject& b) {
@@ -240,11 +260,17 @@ int main()
 		rightPaddle->Update(deltaTime, &event);
 		ball->Update(deltaTime, &event);
 
-		if (CheckCollision(*ball, *leftPaddle)) {
-			ball->HitPaddle();
+		//Checks collision with the paddle on the side that the ball is currently on
+		if (ball->GetPosition().x < SCREEN_WIDTH / 2) {
+			if (CheckCollision(*ball, *leftPaddle)) {
+				ball->HitPaddle();
+			}
 		}
-		else if (CheckCollision(*ball, *rightPaddle)) {
-			ball->HitPaddle();
+		else
+		{
+			if (CheckCollision(*ball, *rightPaddle)) {
+				ball->HitPaddle();
+			}
 		}
 
 		window->clear();
@@ -255,6 +281,8 @@ int main()
 
 		window->display();
 	}
+	
+	delete window;
 
 	return 0;
 }
