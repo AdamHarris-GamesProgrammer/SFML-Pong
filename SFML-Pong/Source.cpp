@@ -99,6 +99,19 @@ public:
 		paddleSprite.setSize(size);
 		paddleSprite.setPosition(sf::Vector2f(xPos, SCREEN_HEIGHT / 2));
 		paddleSprite.setFillColor(color);
+
+		scoreFont.loadFromFile("Assets/Fonts/good times.ttf");
+		scoreText = sf::Text("0", scoreFont, 30);
+		scoreText.setStyle(sf::Text::Bold);
+		
+		if (xPos < SCREEN_WIDTH / 2) {
+			scoreText.setPosition(sf::Vector2f((SCREEN_WIDTH / 2) - 140.0f, 0));
+		}
+		else
+		{
+			scoreText.setPosition(sf::Vector2f((SCREEN_WIDTH / 2) + 100.0f, 0));
+		}
+
 	}
 	~Paddle() {
 
@@ -111,6 +124,7 @@ public:
 
 	void Draw() override {
 		window->draw(paddleSprite);
+		window->draw(scoreText);
 	}
 
 	void PollInput(float deltaTime, sf::Event* event) override {
@@ -129,8 +143,11 @@ public:
 
 		PollInput(Time::deltaTime, event);
 		paddleSprite.setPosition(position);
+	}
 
-
+	void IncrementScore() {
+		score++;
+		scoreText.setString(std::to_string(score));
 	}
 
 private:
@@ -140,6 +157,11 @@ private:
 	sf::Keyboard::Key downKey = sf::Keyboard::Down;
 
 	float movementSpeed = 3.0f;
+
+	int score = 0;
+
+	sf::Font scoreFont;
+	sf::Text scoreText;
 };
 
 class Ball : public GameObject {
@@ -304,12 +326,14 @@ int main()
 		if (ball->GetPosition().x < SCREEN_WIDTH / 2) {
 			if (CheckCollision(*ball, *leftPaddle)) {
 				ball->HitPaddle();
+				leftPaddle->IncrementScore();
 			}
 		}
 		else
 		{
 			if (CheckCollision(*ball, *rightPaddle)) {
 				ball->HitPaddle();
+				rightPaddle->IncrementScore();
 			}
 		}
 
