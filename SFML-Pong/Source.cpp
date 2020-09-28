@@ -12,15 +12,17 @@ class Time {
 public:
 	static float deltaTime;
 	
-	void UpdateTimer() {
+	static void UpdateTimer() {
 		sf::Time dt = deltaClock.restart();
 		deltaTime = dt.asSeconds();
 	}
 private:
-	sf::Clock deltaClock;
+	static sf::Clock deltaClock;
 };
 
 float Time::deltaTime;
+sf::Clock Time::deltaClock;
+
 
 class SoundEffect {
 public:
@@ -65,7 +67,11 @@ public:
 
 	virtual void PollInput(float deltaTime, sf::Event* event) {}
 
-	virtual void Update(sf::Event* event) {
+	virtual void Update() {}
+
+	virtual void Update(sf::Event* event) {}
+
+	void UpdateRects() {
 		transformRect.left = position.x;
 		transformRect.top = position.y;
 	}
@@ -119,7 +125,7 @@ public:
 	}
 
 	void Update(sf::Event* event) override {
-		GameObject::Update(event);
+		UpdateRects();
 
 		PollInput(Time::deltaTime, event);
 		paddleSprite.setPosition(position);
@@ -150,7 +156,9 @@ public:
 		window->draw(ballSprite);
 	}
 
-	void Update(sf::Event* event) override {
+	void Update() override {
+		UpdateRects();
+
 		if (position.x < 0) {
 			Reset();
 		}
@@ -164,8 +172,6 @@ public:
 		else if (position.y + size.y > SCREEN_HEIGHT) {
 			HitWall();
 		}
-
-		GameObject::Update(event);
 
 		position += velocity * Time::deltaTime;
 
@@ -264,8 +270,6 @@ bool CheckCollision(GameObject& a, GameObject& b) {
 
 int main()
 {
-	Time time;
-
 	auto* window = new sf::RenderWindow(sf::VideoMode(SCREEN_WIDTH, SCREEN_HEIGHT), "SFML Pong");
 	window->setVerticalSyncEnabled(true);
 	window->setFramerateLimit(60);
@@ -279,7 +283,7 @@ int main()
 
 	while (window->isOpen())
 	{
-		time.UpdateTimer();
+		Time::UpdateTimer();
 
 		sf::Event event;
 		while (window->pollEvent(event))
@@ -294,7 +298,7 @@ int main()
 
 		leftPaddle->Update(&event);
 		rightPaddle->Update(&event);
-		ball->Update(&event);
+		ball->Update();
 
 		//Checks collision with the paddle on the side that the ball is currently on
 		if (ball->GetPosition().x < SCREEN_WIDTH / 2) {
