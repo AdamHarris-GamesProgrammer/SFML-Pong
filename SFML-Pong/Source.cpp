@@ -10,7 +10,7 @@
 
 class Time {
 public:
-	float deltaTime;
+	static float deltaTime;
 	
 	void UpdateTimer() {
 		sf::Time dt = deltaClock.restart();
@@ -19,6 +19,8 @@ public:
 private:
 	sf::Clock deltaClock;
 };
+
+float Time::deltaTime;
 
 class SoundEffect {
 public:
@@ -63,7 +65,7 @@ public:
 
 	virtual void PollInput(float deltaTime, sf::Event* event) {}
 
-	virtual void Update(float deltaTime, sf::Event* event) {
+	virtual void Update(sf::Event* event) {
 		transformRect.left = position.x;
 		transformRect.top = position.y;
 	}
@@ -116,10 +118,10 @@ public:
 		}
 	}
 
-	void Update(float deltaTime, sf::Event* event) override {
-		GameObject::Update(deltaTime, event);
+	void Update(sf::Event* event) override {
+		GameObject::Update(event);
 
-		PollInput(deltaTime, event);
+		PollInput(Time::deltaTime, event);
 		paddleSprite.setPosition(position);
 
 
@@ -148,7 +150,7 @@ public:
 		window->draw(ballSprite);
 	}
 
-	void Update(float deltaTime, sf::Event* event) override {
+	void Update(sf::Event* event) override {
 		if (position.x < 0) {
 			Reset();
 		}
@@ -163,9 +165,9 @@ public:
 			HitWall();
 		}
 
-		GameObject::Update(deltaTime, event);
+		GameObject::Update(event);
 
-		position += velocity * deltaTime;
+		position += velocity * Time::deltaTime;
 
 		ballSprite.setPosition(position);
 	}
@@ -290,9 +292,9 @@ int main()
 			}
 		}
 
-		leftPaddle->Update(time.deltaTime, &event);
-		rightPaddle->Update(time.deltaTime, &event);
-		ball->Update(time.deltaTime, &event);
+		leftPaddle->Update(&event);
+		rightPaddle->Update(&event);
+		ball->Update(&event);
 
 		//Checks collision with the paddle on the side that the ball is currently on
 		if (ball->GetPosition().x < SCREEN_WIDTH / 2) {
