@@ -150,6 +150,11 @@ public:
 		scoreText.setString(std::to_string(score));
 	}
 
+	void ResetScore() {
+		score = 0;
+		scoreText.setString(std::to_string(score));
+	}
+
 private:
 	sf::RectangleShape paddleSprite;
 
@@ -335,6 +340,13 @@ int main()
 				ball->HitPaddle();
 				rightPaddle->IncrementScore();
 			}
+		}
+
+		if (ball->GetPosition().x < 0) {
+			leftPaddle->ResetScore();
+		}
+		else if (ball->GetPosition().x > SCREEN_WIDTH) {
+			rightPaddle->ResetScore();
 		}
 
 		window->clear();
