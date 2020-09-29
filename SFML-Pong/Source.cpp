@@ -208,36 +208,10 @@ public:
 	void Reset() {
 		position = sf::Vector2f(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2);
 
-		//generates random seed for the program
-		std::random_device rd;
-		std::mt19937 gen(rd());
-		std::uniform_int_distribution<> dis(0, 1);
-		std::uniform_real_distribution<> yDis(0, movementSpeed);
+		float xVel = rand() % 2 ? xVel = movementSpeed : xVel = -movementSpeed;
+		float yVel = rand() % (int)movementSpeed;
 
-		float xVel = movementSpeed * dis(gen);
-		float yVel = movementSpeed * dis(gen);
-
-		if (dis(gen) == 0)
-		{
-			xVel = -movementSpeed;
-		}
-		else
-		{
-			xVel = movementSpeed;
-		}
-
-		if (dis(gen) == 0)
-		{
-
-			yVel = -yDis(gen);
-
-		}
-		else
-		{
-			yVel = yDis(gen);
-		}
-
-		velocity = sf::Vector2f(xVel, yVel);
+		velocity = { xVel, yVel };
 	}
 
 	void HitPaddle() {
