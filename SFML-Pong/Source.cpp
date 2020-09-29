@@ -250,26 +250,7 @@ public:
 			position.x = SCREEN_WIDTH - 37.0f - size.x;
 		}
 
-		velocity.x = -velocity.x;
-
-		std::random_device rd;
-		std::mt19937 gen(rd());
-		std::uniform_int_distribution<> dis(0, 1);
-		std::uniform_real_distribution<> yDis(0, movementSpeed);
-
-		float yVel = movementSpeed * dis(gen);
-
-		if (dis(gen) == 0)
-		{
-			yVel = -yDis(gen);
-		}
-		else
-		{
-			yVel = yDis(gen);
-		}
-
-		velocity.y = yVel;
-
+		velocity = { -velocity.x, (float)(-rand() % (int)movementSpeed) };
 	}
 
 	void HitWall() {
